@@ -11,5 +11,6 @@ namespace BakerApp.Data
         }
 
         public DbSet<Client> Client{ get; set; }
+        public DbSet<Order> Order { get; set; }
     }
 }

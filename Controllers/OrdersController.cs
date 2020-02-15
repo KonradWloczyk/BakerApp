@@ -10,22 +10,23 @@ using BakerApp.Models;
 
 namespace BakerApp.Controllers
 {
-    public class ClientsController : Controller
+    public class OrdersController : Controller
     {
         private readonly BakerAppContext _context;
 
-        public ClientsController(BakerAppContext context)
+        public OrdersController(BakerAppContext context)
         {
             _context = context;
         }
 
-        // GET: Clients
+        // GET: Orders
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Client.ToListAsync());
+            var bakerAppContext = _context.Order.Include(o => o.Client);
+            return View(await bakerAppContext.ToListAsync());
         }
 
-        // GET: Clients/Details/5
+        // GET: Orders/Details/5
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -33,37 +34,42 @@ namespace BakerApp.Controllers
                 return NotFound();
             }
 
-            var client = await _context.Client
+            var order = await _context.Order
+                .Include(o => o.Client)
                 .FirstOrDefaultAsync(m => m.Id == id);
-            if (client == null)
+            if (order == null)
             {
                 return NotFound();
             }
 
-            return View(client);
+            return View(order);
         }
 
-        // GET: Clients/Create
+        // GET: Orders/Create
         public IActionResult Create()
         {
+            ViewData["ClientId"] = new SelectList(_context.Client, "Id", "Id");
             return View();
         }
 
-        // POST: Clients/Create
+        // POST: Orders/Create
+        // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
+        // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Name,DateOfBirth,Region,Contact")] Client client)
+        public async Task<IActionResult> Create([Bind("Id,Name,ClientId,CreatedDate,Status")] Order order)
         {
             if (ModelState.IsValid)
             {
-                _context.Add(client);
+                _context.Add(order);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            return View(client);
+            ViewData["ClientId"] = new SelectList(_context.Client, "Id", "Id", order.ClientId);
+            return View(order);
         }
 
-        // GET: Clients/Edit/5
+        // GET: Orders/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -71,20 +77,23 @@ namespace BakerApp.Controllers
                 return NotFound();
             }
 
-            var client = await _context.Client.FindAsync(id);
-            if (client == null)
+            var order = await _context.Order.FindAsync(id);
+            if (order == null)
             {
                 return NotFound();
             }
-            return View(client);
+            ViewData["ClientId"] = new SelectList(_context.Client, "Id", "Id", order.ClientId);
+            return View(order);
         }
 
-        // POST: Clients/Edit/5
+        // POST: Orders/Edit/5
+        // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
+        // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,DateOfBirth,Region,Contact")] Client client)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,ClientId,CreatedDate,Status")] Order order)
         {
-            if (id != client.Id)
+            if (id != order.Id)
             {
                 return NotFound();
             }
@@ -93,12 +102,12 @@ namespace BakerApp.Controllers
             {
                 try
                 {
-                    _context.Update(client);
+                    _context.Update(order);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!ClientExists(client.Id))
+                    if (!OrderExists(order.Id))
                     {
                         return NotFound();
                     }
@@ -109,10 +118,11 @@ namespace BakerApp.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            return View(client);
+            ViewData["ClientId"] = new SelectList(_context.Client, "Id", "Id", order.ClientId);
+            return View(order);
         }
 
-        // GET: Clients/Delete/5
+        // GET: Orders/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -120,30 +130,31 @@ namespace BakerApp.Controllers
                 return NotFound();
             }
 
-            var client = await _context.Client
+            var order = await _context.Order
+                .Include(o => o.Client)
                 .FirstOrDefaultAsync(m => m.Id == id);
-            if (client == null)
+            if (order == null)
             {
                 return NotFound();
             }
 
-            return View(client);
+            return View(order);
         }
 
-        // POST: Clients/Delete/5
+        // POST: Orders/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var client = await _context.Client.FindAsync(id);
-            _context.Client.Remove(client);
+            var order = await _context.Order.FindAsync(id);
+            _context.Order.Remove(order);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
-        private bool ClientExists(int id)
+        private bool OrderExists(int id)
         {
-            return _context.Client.Any(e => e.Id == id);
+            return _context.Order.Any(e => e.Id == id);
         }
     }
 }

@@ -27,7 +27,9 @@ namespace BakerApp
             services.AddControllersWithViews();
 
             services.AddDbContext<BakerAppContext>(options =>
-                    options.UseSqlServer(Configuration.GetConnectionString("MvcMovieContext")));
+            {
+                options.UseSqlServer(Configuration.GetConnectionString("BakerAppContext"));
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -56,6 +58,20 @@ namespace BakerApp
                     name: "default",
                     pattern: "{controller=Home}/{action=Index}/{id?}");
             });
+
+            UpdateDatabase(app);
+        }
+
+        private void UpdateDatabase(IApplicationBuilder app)
+        {
+            using var serviceScope = app.ApplicationServices
+                .GetRequiredService<IServiceScopeFactory>()
+                .CreateScope();
+
+            using var context = serviceScope.ServiceProvider.GetService<BakerAppContext>();
+
+            context.Database.EnsureCreated();
+            context.Database.Migrate();
         }
     }
 }
